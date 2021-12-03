@@ -1,0 +1,29 @@
+# Default ignored files
+/shelf/
+/workspace.xml
+
+# Editor-based HTTP Client requests
+/httpRequests/
+
+# Datasource local storage ignored files
+/dataSources/
+/dataSources.local.xml
+
+# Ignoring auto generated files.
+/.idea/
+/.env/
+/.docksal/
+
+# Ignoring composer created files.
+/drush/contrib/
+/vendor/
+/web/sites/simpletest
+/web/core/
+/web/modules/contrib/
+/web/themes/contrib/
+/web/profiles/contrib/
+/web/libraries/
+
+# Docroot
+/docroot/
+
