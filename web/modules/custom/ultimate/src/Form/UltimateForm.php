@@ -8,6 +8,13 @@ use Drupal\Core\Form\FormStateInterface;
 class UltimateForm extends FormBase {
 
   /**
+   * Titles of the header.
+   *
+   * @var
+   */
+  protected $titles;
+
+  /**
    * {@inheritDoc}
    */
   public function getFormId(): string {
@@ -17,10 +24,10 @@ class UltimateForm extends FormBase {
   /**
    * Building header.
    *
-   * @return string[]
+   * @return void
    */
-   public function buildTitles(): array {
-     return [
+   public function buildTitles(): void {
+     $this->titles = [
        'year' => $this->t('Year'),
        'jan' => $this->t('Jan'),
        'feb' => $this->t('Feb'),
@@ -65,12 +72,16 @@ class UltimateForm extends FormBase {
     $form['#prefix'] = '<div id = "form_wrapper">';
     $form['#suffix'] = '</div>';
     $form['#attached'] = ['library' => ['ultimate/ultimate_library']];
-    //$form['#add_year'] = [
+    $this->buildTitles();
+    //  $form['#add_year'] = [
     // '#type' => 'submit',
     //  '#value' => 'Add Year',
     //  '#'
-    //];
-
+    //  ];
+    $form['table'] = [
+      '#type' => 'table',
+      '#header' => $this->titles,
+    ];
     return $form;
   }
 
