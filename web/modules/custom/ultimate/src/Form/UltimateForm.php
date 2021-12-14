@@ -15,6 +15,27 @@ class UltimateForm extends FormBase {
   protected $titles;
 
   /**
+   * Titles of the header.
+   *
+   * @var
+   */
+  protected $intitles;
+
+  /**
+   * Amount of tables to be built.
+   *
+   * @var
+   */
+  protected $tables = 1;
+
+  /**
+   * Amount of rows to be built for each table.
+   *
+   * @var
+   */
+  protected $rows = 1;
+
+  /**
    * {@inheritDoc}
    */
   public function getFormId(): string {
@@ -52,16 +73,16 @@ class UltimateForm extends FormBase {
   /**
    * Returning values of inactive cells.
    *
-   * @return string[]
+   * @return void
    */
-   public function inactiveCells(): array {
-     return [
-       'q1' => '',
-       'q2' => '',
-       'q3' => '',
-       'q4' => '',
-       'year' => '',
-       'ytd' => '',
+   public function inactiveCells(): void {
+     $this->intitles = [
+       'q1' => $this->t('Q1'),
+       'q2' => $this->t('Q2'),
+       'q3' => $this->t('Q3'),
+       'q4' => $this->t('Q4'),
+       'year' => $this->t('Year'),
+       'ytd' => $this->t('YTD'),
      ];
    }
 
@@ -73,6 +94,7 @@ class UltimateForm extends FormBase {
     $form['#suffix'] = '</div>';
     $form['#attached'] = ['library' => ['ultimate/ultimate_library']];
     $this->buildTitles();
+    $this->buildTables($form, $form_state);
     //  $form['#add_year'] = [
     // '#type' => 'submit',
     //  '#value' => 'Add Year',
@@ -80,9 +102,43 @@ class UltimateForm extends FormBase {
     //  ];
     $form['table'] = [
       '#type' => 'table',
-      '#header' => $this->titles,
     ];
     return $form;
+  }
+
+  protected function buildTables(array &$form, FormStateInterface $form_state) {
+    for ($i = 0; $i < $this->tables; $i++) {
+      $tableKey = 'table-' . ($i + 1);
+      $form[$tableKey] = [
+        '#type' => 'table',
+        '#tree' => TRUE,
+        '#header' => $this->titles,
+      ];
+      $this->buildRows($tableKey, $form[$tableKey], $form_state);
+    }
+  }
+
+  /**
+   * Build rows.
+   */
+  protected function buildRows(string $tableKey, array &$table, FormStateInterface $form_state) {
+    for ($i = $this->rows; $i > 0; $i--) {
+      foreach ($this->titles as $key => $value) {
+        $table[$i][$key] = [
+          '#type' => 'number',
+          '#step' => '0.01',
+        ];
+        // Some additions to fields that should be calculated on the server.
+        if (array_key_exists($key, $this->intitles)) {
+          // Set default value linked to form_state,
+          // so we can change displayed value for user.
+          $value = $form_state->getValue($tableKey . '][' . $i . '][' . $key, 0);
+          $table[$i][$key]['#disabled'] = TRUE;
+          $table[$i][$key]['#default_value'] = round($value, 2);
+        }
+      }
+      $table[$i]['year']['#default_value'] = date('Y') - $i + 1;
+    }
   }
 
   /**
