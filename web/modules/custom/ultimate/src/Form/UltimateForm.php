@@ -93,6 +93,7 @@ class UltimateForm extends FormBase {
     $form['#prefix'] = '<div id = "form_wrapper">';
     $form['#suffix'] = '</div>';
     $form['#attached'] = ['library' => ['ultimate/ultimate_library']];
+    $this->inactiveCells();
     $this->buildTitles();
     $this->buildTables($form, $form_state);
     //  $form['#add_year'] = [
