@@ -10,28 +10,28 @@ class UltimateForm extends FormBase {
   /**
    * Titles of the header.
    *
-   * @var
+   * @var array
    */
   protected $titles;
 
   /**
    * Titles of the header.
    *
-   * @var
+   * @var array
    */
   protected $intitles;
 
   /**
    * Amount of tables to be built.
    *
-   * @var
+   * @var int
    */
   protected $tables = 1;
 
   /**
    * Amount of rows to be built for each table.
    *
-   * @var
+   * @var int
    */
   protected $rows = 1;
 
@@ -47,7 +47,7 @@ class UltimateForm extends FormBase {
    *
    * @return void
    */
-   public function buildTitles(): void {
+   protected function buildTitles(): void {
      $this->titles = [
        'year' => $this->t('Year'),
        'jan' => $this->t('Jan'),
@@ -75,7 +75,7 @@ class UltimateForm extends FormBase {
    *
    * @return void
    */
-   public function inactiveCells(): void {
+   protected function inactiveCells(): void {
      $this->intitles = [
        'q1' => $this->t('Q1'),
        'q2' => $this->t('Q2'),
@@ -93,47 +93,86 @@ class UltimateForm extends FormBase {
     $form['#prefix'] = '<div id = "form_wrapper">';
     $form['#suffix'] = '</div>';
     $form['#attached'] = ['library' => ['ultimate/ultimate_library']];
+
     $this->inactiveCells();
     $this->buildTitles();
-    $this->buildTables($form, $form_state);
-    //  $form['#add_year'] = [
-    // '#type' => 'submit',
-    //  '#value' => 'Add Year',
-    //  '#'
-    //  ];
-    $form['table'] = [
-      '#type' => 'table',
+    $this->buildTable($form, $form_state);
+
+    $form['addTable'] = [
+      '#type' => 'submit',
+      '#value' => $this->t('Add Table'),
+      '#submit' => ['::addTable'],
+      '#ajax' => [
+        'wrapper' => 'form_wrapper',
+        'progress' => array('type' => 'none'),
+      ],
     ];
+
+    $form['addRow'] = [
+      '#type' => 'submit',
+      '#value' => $this->t('Add Row'),
+      '#submit' => ['::addRow'],
+      '#ajax' => [
+        'wrapper' => 'form_wrapper',
+        'progress' => [
+          'type' => 'none',
+        ],
+      ],
+    ];
+
+    $form['submit'] = [
+      '#type' => 'submit',
+      '#value' => 'Submit',
+      '#submit' => ['::submitAjaxForm'],
+      '#ajax' => [
+        'wrapper' => 'form_wrapper',
+        'progress' => [
+          'type' => 'none',
+        ]
+      ]
+    ];
+
     return $form;
   }
 
-  protected function buildTables(array &$form, FormStateInterface $form_state) {
+  /**
+   * Function adds a new table.
+   *
+   * @param array $form
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *
+   * @return void
+   */
+  protected function buildTable(array &$form, FormStateInterface $form_state): void {
     for ($i = 0; $i < $this->tables; $i++) {
-      $tableKey = 'table-' . ($i + 1);
-      $form[$tableKey] = [
+      $table_key = $i;
+      $form[$table_key] = [
         '#type' => 'table',
-        '#tree' => TRUE,
         '#header' => $this->titles,
+        '#tree' => TRUE,
       ];
-      $this->buildRows($tableKey, $form[$tableKey], $form_state);
+      $this->buildRow($table_key, $form[$table_key], $form_state);
     }
   }
 
   /**
-   * Build rows.
+   * Function adds rows to the existing table.
+   *
+   * @param $table_key
+   * @param array $table
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *
+   * @return void
    */
-  protected function buildRows(string $tableKey, array &$table, FormStateInterface $form_state) {
+  protected function buildRow($table_key, array &$table, FormStateInterface $form_state): void {
     for ($i = $this->rows; $i > 0; $i--) {
       foreach ($this->titles as $key => $value) {
         $table[$i][$key] = [
           '#type' => 'number',
           '#step' => '0.01',
         ];
-        // Some additions to fields that should be calculated on the server.
         if (array_key_exists($key, $this->intitles)) {
-          // Set default value linked to form_state,
-          // so we can change displayed value for user.
-          $value = $form_state->getValue($tableKey . '][' . $i . '][' . $key, 0);
+          $value = $form_state->getValue($table_key . '][' . $i . '][' . $key, 0);
           $table[$i][$key]['#disabled'] = TRUE;
           $table[$i][$key]['#default_value'] = round($value, 2);
         }
@@ -142,6 +181,37 @@ class UltimateForm extends FormBase {
     }
   }
 
+  /**
+   * Function which adds a new row to the table by incrementing rows.
+   *
+   * @param array $form
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *
+   * @return array
+   */
+  public function addRow(array $form, FormStateInterface $form_state): array {
+    $this->rows++;
+    $form_state->setRebuild();
+    return $form;
+  }
+
+  /**
+   * Function which adds a new table by incrementing tables.
+   *
+   * @param array $form
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *
+   * @return array
+   */
+  public function addTable(array $form, FormStateInterface $form_state): array {
+    $this->tables++;
+    $form_state->setRebuild();
+    return $form;
+  }
+
+  public function submitAjaxForm(array $form, FormStateInterface $form_state): array {
+    return $form;
+  }
   /**
    * {@inheritDoc}
    */
