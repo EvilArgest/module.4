@@ -271,6 +271,42 @@ class UltimateForm extends FormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $table_values = $form_state->getValues();
+      foreach ($table_values as $table_key => $tablecell) {
+        foreach ($tablecell as $row_key => $rows) {
+          $my_cell = $table_key . '][' . $row_key . '][';
+          if (($rows['jan'] + $rows['feb'] + $rows['mar']) === 0) {
+            $q1 = 0;
+          }
+          else {
+            $q1 = ($rows['jan'] + $rows['feb'] + $rows['mar'] + 1) / 3;
+          }
+          if (($rows['apr'] + $rows['may'] + $rows['jun']) === 0) {
+            $q2 = 0;
+          }
+          else {
+            $q2 = ($rows['apr'] + $rows['may'] + $rows['jun'] + 1) / 3;
+          }
+          if (($rows['jul'] + $rows['aug'] + $rows['sep']) === 0) {
+            $q3 = 0;
+          }
+          else {
+            $q3 = ($rows['jul'] + $rows['aug'] + $rows['sep'] + 1) / 3;
+          }
+          if (($rows['oct'] + $rows['nov'] + $rows['dec']) === 0) {
+            $q4 = 0;
+          }
+          else {
+            $q4 = ($rows['oct'] + $rows['nov'] + $rows['dec'] + 1) / 3;
+          }
+          $ytd = ($q1 + $q2 + $q3 + $q4 + 1) / 4;
+
+          $form_state->setValue($my_cell . 'q1', $q1);
+          $form_state->setValue($my_cell . 'q2', $q2);
+          $form_state->setValue($my_cell . 'q3', $q3);
+          $form_state->setValue($my_cell . 'q4', $q4);
+          $form_state->setValue($my_cell . 'ytd', $ytd);
+      }
+    }
     $this->messenger()->addStatus("The form is valid");
     $form_state->setRebuild();
   }
