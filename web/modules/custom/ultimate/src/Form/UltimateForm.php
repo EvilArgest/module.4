@@ -103,8 +103,11 @@ class UltimateForm extends FormBase {
       '#value' => $this->t('Add Table'),
       '#submit' => ['::addTable'],
       '#ajax' => [
+        'callback' => '::submitAjaxForm',
         'wrapper' => 'form_wrapper',
-        'progress' => array('type' => 'none'),
+        'progress' => [
+          'type' => 'none'
+        ],
       ],
     ];
 
@@ -113,6 +116,7 @@ class UltimateForm extends FormBase {
       '#value' => $this->t('Add Row'),
       '#submit' => ['::addRow'],
       '#ajax' => [
+        'callback' => '::submitAjaxForm',
         'wrapper' => 'form_wrapper',
         'progress' => [
           'type' => 'none',
@@ -122,16 +126,15 @@ class UltimateForm extends FormBase {
 
     $form['submit'] = [
       '#type' => 'submit',
-      '#value' => 'Submit',
-      '#submit' => ['::submitAjaxForm'],
+      '#value' => $this->t('Submit'),
       '#ajax' => [
+        'callback' => '::submitAjaxForm',
         'wrapper' => 'form_wrapper',
         'progress' => [
           'type' => 'none',
         ]
       ]
     ];
-
     return $form;
   }
 
@@ -159,25 +162,25 @@ class UltimateForm extends FormBase {
    * Function adds rows to the existing table.
    *
    * @param $table_key
-   * @param array $table
+   * @param array $tablecell
    * @param \Drupal\Core\Form\FormStateInterface $form_state
    *
    * @return void
    */
-  protected function buildRow($table_key, array &$table, FormStateInterface $form_state): void {
+  protected function buildRow($table_key, array &$tablecell, FormStateInterface $form_state): void {
     for ($i = $this->rows; $i > 0; $i--) {
       foreach ($this->titles as $key => $value) {
-        $table[$i][$key] = [
+        $tablecell[$i][$key] = [
           '#type' => 'number',
           '#step' => '0.01',
         ];
         if (array_key_exists($key, $this->intitles)) {
           $value = $form_state->getValue($table_key . '][' . $i . '][' . $key, 0);
-          $table[$i][$key]['#disabled'] = TRUE;
-          $table[$i][$key]['#default_value'] = round($value, 2);
+          $tablecell[$i][$key]['#default_value'] = round($value, 2);
+          $tablecell[$i][$key]['#disabled'] = TRUE;
         }
       }
-      $table[$i]['year']['#default_value'] = date('Y') - $i + 1;
+      $tablecell[$i]['year']['#default_value'] = date('Y') - $i + 1;
     }
   }
 
@@ -209,14 +212,67 @@ class UltimateForm extends FormBase {
     return $form;
   }
 
+  public function babababa($array): array {
+    $values  = [];
+    $inactive_cells = $this->intitles;
+    for($i = $this->rows; $i > 0; $i--) {
+      foreach ($array[$i] as $key => $value) {
+        if (!array_key_exists($key, $inactive_cells)) {
+          $values[] = $value;
+        }
+      }
+    }
+    return $values;
+  }
+
   public function submitAjaxForm(array $form, FormStateInterface $form_state): array {
     return $form;
   }
+
+  public function validateForm(array &$form, FormStateInterface $form_state): void {
+    $table_values = $form_state->getValues();
+    $start_point = NULL;
+    $end_point = NULL;
+    $active_values = [];
+    for ($i = 0; $i < $this->tables; $i++) {
+      $values = $this->babababa($table_values[$i]);
+      $active_values[] = $values;
+      foreach ($values as $key => $value) {
+        for ($j = 0; $j < 12; $j++) {
+          if (empty($active_values[0][$j]) !== empty($active_values[$i][$j])) {
+            $form_state->setErrorByName($i, 'Tables are not the same...');
+          }
+        }
+        if (!empty($value)) {
+          $start_point = $key;
+          break;
+        }
+      }
+      if ($start_point !== NULL) {
+        for ($l = $start_point; $l < count($values) + 1; $l++) {
+          if (empty($values[$l])) {
+            $end_point = $l;
+            break;
+          }
+        }
+      }
+      if ($end_point !== NULL) {
+        for ($f = $end_point; $f < count($values) + 1; $f++) {
+          if (!empty($values[$f])) {
+            $form_state->setErrorByName($f, 'Form is not valid');
+          }
+        }
+      }
+    }
+  }
+
   /**
    * {@inheritDoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    // TODO: Implement submitForm() method.
+    $table_values = $form_state->getValues();
+    $this->messenger()->addStatus("The form is valid");
+    $form_state->setRebuild();
   }
 
 }
