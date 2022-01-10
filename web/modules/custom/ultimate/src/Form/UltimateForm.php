@@ -44,8 +44,6 @@ class UltimateForm extends FormBase {
 
   /**
    * Building header.
-   *
-   * @return void
    */
    protected function buildTitles(): void {
      $this->titles = [
@@ -72,8 +70,6 @@ class UltimateForm extends FormBase {
 
   /**
    * Returning values of inactive cells.
-   *
-   * @return void
    */
    protected function inactiveCells(): void {
      $this->intitles = [
@@ -107,7 +103,7 @@ class UltimateForm extends FormBase {
         'callback' => '::submitAjaxForm',
         'wrapper' => 'form_wrapper',
         'progress' => [
-          'type' => 'none'
+          'type' => 'none',
         ],
       ],
     ];
@@ -134,19 +130,14 @@ class UltimateForm extends FormBase {
         'wrapper' => 'form_wrapper',
         'progress' => [
           'type' => 'none',
-        ]
-      ]
+        ],
+      ],
     ];
     return $form;
   }
 
   /**
    * Function adds a new table.
-   *
-   * @param array $form
-   * @param \Drupal\Core\Form\FormStateInterface $form_state
-   *
-   * @return void
    */
   protected function buildTable(array &$form, FormStateInterface $form_state): void {
     for ($i = 0; $i < $this->tables; $i++) {
@@ -162,12 +153,6 @@ class UltimateForm extends FormBase {
 
   /**
    * Function adds rows to the existing table.
-   *
-   * @param $table_key
-   * @param array $tablecell
-   * @param \Drupal\Core\Form\FormStateInterface $form_state
-   *
-   * @return void
    */
   protected function buildRow($table_key, array &$tablecell, FormStateInterface $form_state): void {
     for ($i = $this->rows; $i > 0; $i--) {
@@ -188,11 +173,6 @@ class UltimateForm extends FormBase {
 
   /**
    * Function which adds a new row to the table by incrementing rows.
-   *
-   * @param array $form
-   * @param \Drupal\Core\Form\FormStateInterface $form_state
-   *
-   * @return array
    */
   public function addRow(array $form, FormStateInterface $form_state): array {
     $this->rows++;
@@ -202,11 +182,6 @@ class UltimateForm extends FormBase {
 
   /**
    * Function which adds a new table by incrementing tables.
-   *
-   * @param array $form
-   * @param \Drupal\Core\Form\FormStateInterface $form_state
-   *
-   * @return array
    */
   public function addTable(array $form, FormStateInterface $form_state): array {
     $this->tables++;
@@ -214,10 +189,13 @@ class UltimateForm extends FormBase {
     return $form;
   }
 
-  public function babababa($array): array {
-    $values  = [];
+  /**
+   * Transforming array.
+   */
+  public function arrayTransform($array): array {
+    $values = [];
     $inactive_cells = $this->intitles;
-    for($i = $this->rows; $i > 0; $i--) {
+    for ($i = $this->rows; $i > 0; $i--) {
       foreach ($array[$i] as $key => $value) {
         if (!array_key_exists($key, $inactive_cells)) {
           $values[] = $value;
@@ -227,17 +205,23 @@ class UltimateForm extends FormBase {
     return $values;
   }
 
+  /**
+   * Refreshing the page.
+   */
   public function submitAjaxForm(array $form, FormStateInterface $form_state): array {
     return $form;
   }
 
+  /**
+   * Validating the form.
+   */
   public function validateForm(array &$form, FormStateInterface $form_state): void {
     $table_values = $form_state->getValues();
     $start_point = NULL;
     $end_point = NULL;
     $active_values = [];
     for ($i = 0; $i < $this->tables; $i++) {
-      $values = $this->babababa($table_values[$i]);
+      $values = $this->arrayTransform($table_values[$i]);
       $active_values[] = $values;
       foreach ($values as $key => $value) {
         for ($j = 0; $j < 12; $j++) {
