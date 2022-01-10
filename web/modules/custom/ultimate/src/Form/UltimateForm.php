@@ -102,6 +102,7 @@ class UltimateForm extends FormBase {
       '#type' => 'submit',
       '#value' => $this->t('Add Table'),
       '#submit' => ['::addTable'],
+      '#limit_validation_errors' => [],
       '#ajax' => [
         'callback' => '::submitAjaxForm',
         'wrapper' => 'form_wrapper',
@@ -115,6 +116,7 @@ class UltimateForm extends FormBase {
       '#type' => 'submit',
       '#value' => $this->t('Add Row'),
       '#submit' => ['::addRow'],
+      '#limit_validation_errors' => [],
       '#ajax' => [
         'callback' => '::submitAjaxForm',
         'wrapper' => 'form_wrapper',
@@ -298,7 +300,12 @@ class UltimateForm extends FormBase {
           else {
             $q4 = ($rows['oct'] + $rows['nov'] + $rows['dec'] + 1) / 3;
           }
-          $ytd = ($q1 + $q2 + $q3 + $q4 + 1) / 4;
+          if ((($q1 + $q2 + $q3 + $q4 + 1) / 4) === 0) {
+            $ytd = 0;
+          }
+          else {
+            $ytd = ($q1 + $q2 + $q3 + $q4 + 1) / 4;
+          }
 
           $form_state->setValue($my_cell . 'q1', $q1);
           $form_state->setValue($my_cell . 'q2', $q2);
@@ -307,7 +314,7 @@ class UltimateForm extends FormBase {
           $form_state->setValue($my_cell . 'ytd', $ytd);
       }
     }
-    $this->messenger()->addStatus("The form is valid");
+    $this->messenger()->addStatus("Hurray! The form is valid");
     $form_state->setRebuild();
   }
 
